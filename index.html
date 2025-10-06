@@ -1,0 +1,237 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inspection Report Builder</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Inspection Report Builder</h1>
+    <p>Fill in the form to reproduce the inspection report format and download a PDF.</p>
+  </header>
+
+  <main class="app-layout">
+    <section class="form-panel" aria-label="Report inputs">
+      <form id="meta-form" class="card" novalidate>
+        <h2>Report Details</h2>
+        <div class="form-grid">
+          <label>
+            Inspected Area
+            <input type="text" id="areaInput" name="area" placeholder="e.g. QUARRY-AB" required />
+          </label>
+          <label>
+            Visited with
+            <input type="text" id="visitedInput" name="visited" placeholder="e.g. Rakesh Singh" required />
+          </label>
+          <label>
+            Date
+            <input type="date" id="dateInput" name="date" required />
+          </label>
+          <label>
+            Shift
+            <input type="text" id="shiftInput" name="shift" placeholder="e.g. B" required />
+          </label>
+        </div>
+      </form>
+
+      <form id="entry-form" class="card" novalidate>
+        <div class="entry-form-header">
+          <h2>📝 Add Individual Observation</h2>
+          <p class="helper-text">Add one observation at a time with optional picture upload.</p>
+        </div>
+        <div class="form-grid">
+          <label class="full-width">
+            Location
+            <textarea id="locationInput" name="location" rows="3" placeholder="Enter the location details" required></textarea>
+          </label>
+          <label class="full-width">
+            Observation
+            <textarea id="observationInput" name="observation" rows="3" placeholder="Describe the observation" required></textarea>
+          </label>
+          <label class="full-width">
+            Suggested Action
+            <textarea id="suggestedInput" name="suggested" rows="3" placeholder="Outline the suggested action" required></textarea>
+          </label>
+          <label class="full-width">
+            Inform To
+            <textarea id="informInput" name="inform" rows="2" placeholder="Name the person or department to inform"></textarea>
+          </label>
+          <label>
+            Picture
+            <input type="file" id="pictureInput" name="picture" accept="image/*" />
+          </label>
+          <label>
+            Picture Caption
+            <input type="text" id="captionInput" name="caption" placeholder="Optional caption" />
+          </label>
+        </div>
+        <div class="entry-actions">
+          <button type="button" id="addRowBtn" class="primary">Add Row</button>
+          <button type="button" id="clearRowBtn" class="ghost">Clear</button>
+        </div>
+      </form>
+
+      <!-- Full Bulk Upload Form - COMMENTED OUT -->
+      <!--
+      <form id="bulk-entry-form" class="card" novalidate>
+        <div class="entry-form-header">
+          <h2>📋 Bulk Upload Observations</h2>
+          <p class="helper-text">Upload multiple observations at once. Perfect for importing from spreadsheets or other sources.</p>
+          <div class="bulk-format-guide">
+            <p><strong>📋 Column Format (6 columns max, 2 minimum):</strong></p>
+            <ol style="margin: 0.5rem 0; padding-left: 1.5rem; font-size: 0.9rem;">
+              <li><strong>Location</strong> (required) - Where the observation was made</li>
+              <li><strong>Observation</strong> (required) - What was observed</li>
+              <li><strong>Suggested Action</strong> (optional) - Recommended action</li>
+              <li><strong>Inform To</strong> (optional) - Who to notify</li>
+              <li><strong>Picture URL</strong> (optional) - Web URL to image or file path</li>
+              <li><strong>Picture Caption</strong> (optional) - Description of the image</li>
+            </ol>
+            <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;"><strong>Note:</strong> S.NO is auto-generated. Use at least Location and Observation for each row.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <label class="full-width">
+            Bulk Data
+            <textarea id="bulkDataInput" name="bulkData" rows="8" placeholder="Example (6 columns):&#10;LMV Crossing-01, Haul road lights malfunctioning, Repair or replace the lights immediately, Maintenance Team, https://example.com/image1.jpg, Traffic light inspection&#10;HMV Parking Area, Diesel bowser in non-ready position, Ensure proper parking procedures, Safety Officer, , Equipment positioning&#10;&#10;Minimum (4 columns):&#10;Quarry Site A, Safety equipment missing, Install proper safety gear, Safety Department&#10;Site B, Dust accumulation, Clean and maintain area, Cleaning Team&#10;&#10;Or paste your CSV/Excel data here..." required></textarea>
+          </label>
+          <label>
+            Data Format
+            <select id="bulkFormatSelect" name="bulkFormat">
+              <option value="csv">CSV (Comma Separated)</option>
+              <option value="tab">Tab Separated</option>
+              <option value="custom">Custom Separator</option>
+            </select>
+          </label>
+          <label id="customSeparatorLabel" style="display: none;">
+            Custom Separator
+            <input type="text" id="customSeparatorInput" name="customSeparator" placeholder="e.g. | or ;" maxlength="1" />
+          </label>
+        </div>
+        <div class="entry-actions">
+          <button type="button" id="previewBulkBtn" class="secondary">Preview Bulk Data</button>
+          <button type="button" id="addBulkBtn" class="primary" disabled>Add All Rows</button>
+          <button type="button" id="clearBulkBtn" class="ghost">Clear</button>
+        </div>
+      </form>
+      -->
+
+      <!-- Column-Specific Bulk Upload Form -->
+      <form id="column-bulk-form" class="card" novalidate>
+        <div class="entry-form-header">
+          <h2>🎯 Column-Specific Bulk Upload</h2>
+          <p class="helper-text">Fill a specific column for multiple rows. Perfect for updating existing entries or filling one column at a time.</p>
+        </div>
+        <div class="form-grid">
+          <label>
+            Select Column to Fill
+            <select id="columnSelect" name="column" required>
+              <option value="">Choose a column...</option>
+              <option value="location">📍 Location</option>
+              <option value="observation">🔍 Observation</option>
+              <option value="suggested">✅ Suggested Action</option>
+              <option value="inform">👥 Inform To</option>
+              <option value="pictureUrl">🖼️ Picture URL</option>
+              <option value="caption">📝 Picture Caption</option>
+            </select>
+          </label>
+          <label>
+            Upload Mode
+            <select id="columnModeSelect" name="mode">
+              <option value="existing">Update Existing Rows</option>
+              <option value="new">Create New Rows</option>
+            </select>
+          </label>
+          <label class="full-width">
+            Column Data (One Value Per Line)
+            <textarea id="columnDataInput" name="columnData" rows="8" placeholder="Enter one value per line:&#10;&#10;Example for Observations:&#10;Safety equipment missing&#10;Dust accumulation excessive&#10;Traffic lights malfunctioning&#10;Equipment in wrong position&#10;&#10;Each line will fill the selected column for row 1, 2, 3, etc." required></textarea>
+          </label>
+        </div>
+        <div class="entry-actions">
+          <button type="button" id="previewColumnBtn" class="secondary">Preview Column Update</button>
+          <button type="button" id="applyColumnBtn" class="primary" disabled>Apply to Rows</button>
+          <button type="button" id="clearColumnBtn" class="ghost">Clear</button>
+        </div>
+      </form>
+
+      <!-- Column Update Preview -->
+      <div class="card column-preview" id="columnPreview" hidden>
+        <h2>Column Update Preview</h2>
+        <p class="helper-text">Review how the selected column will be updated. Green = new/updated values.</p>
+        <div id="columnPreviewTable"></div>
+        <div class="entry-actions">
+          <button type="button" id="confirmColumnBtn" class="primary">Confirm Column Update</button>
+          <button type="button" id="cancelColumnBtn" class="ghost">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Bulk Preview Section - COMMENTED OUT -->
+      <!--
+      <div class="card bulk-preview" id="bulkPreview" hidden>
+        <h2>Bulk Upload Preview</h2>
+        <p class="helper-text">Review the data before adding to the report. Check that all columns are correctly parsed.</p>
+        <div id="bulkPreviewTable"></div>
+        <div class="entry-actions">
+          <button type="button" id="confirmBulkBtn" class="primary">Confirm & Add All</button>
+          <button type="button" id="cancelBulkBtn" class="ghost">Cancel</button>
+        </div>
+      </div>
+      -->
+
+      <div class="card entry-summary" id="entrySummary" hidden>
+        <h2>Rows Added</h2>
+        <ul id="entryList"></ul>
+      </div>
+    </section>
+
+    <section class="preview-panel" aria-label="Report preview">
+      <div class="preview-toolbar">
+        <button type="button" id="downloadBtn" class="primary">Download PDF</button>
+        <button type="button" id="resetReportBtn" class="ghost">Reset Report</button>
+      </div>
+      <div id="report" class="report" role="region" aria-live="polite">
+
+        <div class="report-header">
+          <div class="header-item">
+            <span class="label">Inspected Area:</span>
+            <span id="previewArea" class="value">&nbsp;</span>
+          </div>
+          <div class="header-item">
+            <span class="label">Visited with:</span>
+            <span id="previewVisited" class="value">&nbsp;</span>
+          </div>
+          <div class="header-item">
+            <span class="label">Date:</span>
+            <span id="previewDate" class="value">&nbsp;</span>
+          </div>
+          <div class="header-item">
+            <span class="label">Shift:</span>
+            <span id="previewShift" class="value">&nbsp;</span>
+          </div>
+        </div>
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th class="col-sno">S.NO</th>
+              <th class="col-picture">PICTURE</th>
+              <th class="col-location">LOCATION</th>
+              <th class="col-observation">OBSERVATION</th>
+              <th class="col-suggested">SUGGESTED ACTION</th>
+              <th class="col-inform">Inform to</th>
+            </tr>
+          </thead>
+          <tbody id="reportBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Tip: Use the Download PDF button to open the browser print dialog and choose "Save as PDF".</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
