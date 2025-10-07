@@ -189,6 +189,7 @@
     <section class="preview-panel" aria-label="Report preview">
       <div class="preview-toolbar">
         <button type="button" id="downloadBtn" class="primary">Download PDF</button>
+        <button type="button" id="downloadDocxBtn" class="secondary">Download DOCX</button>
         <button type="button" id="resetReportBtn" class="ghost">Reset Report</button>
       </div>
       <div id="report" class="report" role="region" aria-live="polite">
@@ -232,6 +233,8 @@
     <p>Tip: Use the Download PDF button to open the browser print dialog and choose "Save as PDF".</p>
   </footer>
 
+  <!-- html-docx-js for DOCX export (ensure this loads before app.js) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.4.1/html-docx.min.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
