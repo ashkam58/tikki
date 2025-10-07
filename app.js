@@ -55,7 +55,10 @@ const refs = {
   columnPreviewTable: document.getElementById("columnPreviewTable"),
   confirmColumnBtn: document.getElementById("confirmColumnBtn"),
   cancelColumnBtn: document.getElementById("cancelColumnBtn"),
+  fillTestDataBtn: document.getElementById("fillTestDataBtn"),
 };
+
+const DOCX_HTML_CHUNK_PATH = "word/chunk.xhtml";
 
 init();
 
@@ -64,8 +67,14 @@ function init() {
   attachMetaListeners();
   refs.addRowBtn.addEventListener("click", handleAddRow);
   refs.clearRowBtn.addEventListener("click", handleClearEntryForm);
-  refs.downloadBtn.addEventListener("click", () => window.print());
+  refs.downloadBtn.addEventListener("click", handleDownloadPdf);
   refs.resetReportBtn.addEventListener("click", handleResetReport);
+  refs.fillTestDataBtn.addEventListener("click", handleFillTestData);
+  // DOCX button (may not exist in older HTML until added)
+  refs.downloadDocxBtn = document.getElementById("downloadDocxBtn");
+  if (refs.downloadDocxBtn) {
+    refs.downloadDocxBtn.addEventListener("click", handleDownloadDocx);
+  }
   
   // Bulk upload event listeners - COMMENTED OUT (elements are commented in HTML)
   /*
@@ -88,6 +97,35 @@ function init() {
   renderHeader();
   renderEntries();
   renderEntrySummary();
+  initThemeSelector();
+}
+
+// Theme selector: apply and persist
+function initThemeSelector() {
+  const themeSelect = document.getElementById('themeSelect');
+  const report = document.getElementById('report');
+  if (!themeSelect || !report) return;
+
+  // Restore saved theme
+  const saved = localStorage.getItem('tikki_report_theme') || 'default';
+  themeSelect.value = saved;
+  applyTheme(saved);
+
+  themeSelect.addEventListener('change', (e) => {
+    const t = e.target.value || 'default';
+    applyTheme(t);
+    localStorage.setItem('tikki_report_theme', t);
+  });
+}
+
+function applyTheme(themeName) {
+  const report = document.getElementById('report');
+  if (!report) return;
+  // remove any theme-... classes we know about
+  const themes = ['default','modern','minimal','compact','corporate','slate','green','mono'];
+  themes.forEach(t => report.classList.remove(`theme-${t}`));
+  const cls = `theme-${themeName || 'default'}`;
+  report.classList.add(cls);
 }
 
 function hydrateDefaultDate() {
@@ -224,6 +262,7 @@ function renderEntries() {
 
     const snoCell = document.createElement("td");
     snoCell.className = "sno-cell";
+    snoCell.dataset.label = "S.NO";
     snoCell.textContent = `${index + 1}.`;
 
     const controls = createRowControls(index);
@@ -233,6 +272,7 @@ function renderEntries() {
 
     const pictureCell = document.createElement("td");
     pictureCell.className = "picture-cell";
+    pictureCell.dataset.label = "Picture";
     const pictureWrapper = document.createElement("div");
     pictureWrapper.className = "picture-wrapper";
 
@@ -269,18 +309,22 @@ function renderEntries() {
 
     const locationCell = document.createElement("td");
     locationCell.className = "location-cell text-cell";
+    locationCell.dataset.label = "Location";
     locationCell.textContent = entry.location;
 
     const observationCell = document.createElement("td");
     observationCell.className = "observation-cell text-cell";
+    observationCell.dataset.label = "Observation";
     observationCell.textContent = entry.observation;
 
     const suggestedCell = document.createElement("td");
     suggestedCell.className = "suggested-cell text-cell";
+    suggestedCell.dataset.label = "Suggested Action";
     suggestedCell.textContent = entry.suggested;
 
     const informCell = document.createElement("td");
     informCell.className = "inform-cell text-cell";
+    informCell.dataset.label = "Inform To";
     informCell.textContent = entry.inform || "";
 
     row.appendChild(snoCell);
@@ -410,6 +454,133 @@ function handleResetReport() {
   renderEntries();
   renderEntrySummary();
   updateAddButtonLabel();
+}
+
+function handleFillTestData() {
+  const confirmed = window.confirm("Fill the report with sample test data? This will replace existing entries.");
+  if (!confirmed) return;
+
+  // Clear existing entries
+  state.entries = [];
+
+  // Sample inspection data
+  const testData = [
+    {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-1`,
+      location: "LMV Crossing-01",
+      observation: "Haul road lights malfunctioning during night shift",
+      suggested: "Repair or replace the lights immediately",
+      inform: "Maintenance Team",
+      caption: "Traffic light inspection",
+      imageData: "https://picsum.photos/seed/1/400/300"
+    },
+    {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-2`,
+      location: "HMV Parking Area",
+      observation: "Diesel bowser parked in non-ready position",
+      suggested: "Ensure proper ready-to-go parking procedures",
+      inform: "Safety Officer",
+      caption: "Diesel bowser positioning",
+      imageData: "https://picsum.photos/seed/2/400/300"
+    },
+    {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-3`,
+      location: "Quarry Site A",
+      observation: "Safety equipment missing for workforce",
+      suggested: "Install proper PPE and safety gear",
+      inform: "Safety Department",
+      caption: "PPE audit",
+      imageData: "https://picsum.photos/seed/3/400/300"
+    },
+    {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-4`,
+      location: "Site B Loading Area",
+      observation: "Dust accumulation excessive during operations",
+      suggested: "Implement dust suppression measures",
+      inform: "Environmental Team",
+      caption: "Dust at loading area",
+      imageData: "https://picsum.photos/seed/4/400/300"
+    },
+    {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-5`,
+      location: "Ghato Tand Public Crossing",
+      observation: "Public crossing obstructed by equipment",
+      suggested: "Create clear pedestrian path",
+      inform: "Community Relations",
+      caption: "Obstruction photo",
+      imageData: "https://picsum.photos/seed/5/400/300"
+    },
+    {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-6`,
+      location: "Kedla Excavation Edge",
+      observation: "Excavation edge unsecured and dangerous",
+      suggested: "Install safety barricades immediately",
+      inform: "Site Supervisor",
+      caption: "Unsecured edge",
+      imageData: "https://picsum.photos/seed/6/400/300"
+    },
+    {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-7`,
+      location: "Crusher Area Floor",
+      observation: "Loose electrical cables on floor",
+      suggested: "Secure cables and reroute properly",
+      inform: "Electrical Team",
+      caption: "Cables near crusher",
+      imageData: "https://picsum.photos/seed/7/400/300"
+    },
+    {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-8`,
+      location: "Weighbridge Station",
+      observation: "Weighbridge not calibrated for 3 months",
+      suggested: "Schedule immediate calibration",
+      inform: "Quality Control",
+      caption: "Calibration sticker missing",
+      imageData: "https://picsum.photos/seed/8/400/300"
+    },
+    {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-9`,
+      location: "Main Gatehouse",
+      observation: "Unauthorized entry observed during shift change",
+      suggested: "Improve gate control procedures",
+      inform: "Security Department",
+      caption: "Entry point security",
+      imageData: "https://picsum.photos/seed/9/400/300"
+    },
+    {
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-10`,
+      location: "Material Stockyard",
+      observation: "Material spillage near storage stacks",
+      suggested: "Clear spill and retrain handling staff",
+      inform: "Operations Manager",
+      caption: "Spillage near stack",
+      imageData: "https://picsum.photos/seed/10/400/300"
+    }
+  ];
+
+  // Fill header with sample data if empty
+  if (!state.area) {
+    state.area = "QUARRY-AB";
+    refs.areaInput.value = state.area;
+  }
+  if (!state.visited) {
+    state.visited = "Rakesh Singh";
+    refs.visitedInput.value = state.visited;
+  }
+  if (!state.shift) {
+    state.shift = "B";
+    refs.shiftInput.value = state.shift;
+  }
+
+  // Add test entries to state
+  state.entries = testData;
+
+  // Re-render everything
+  renderHeader();
+  renderEntries();
+  renderEntrySummary();
+  
+  // Show success message
+  alert(`Successfully filled ${testData.length} test entries!`);
 }
 
 // Bulk Upload Functions
@@ -1002,4 +1173,394 @@ function convertFileToBase64(file) {
     reader.onerror = error => reject(error);
     reader.readAsDataURL(file);
   });
+}
+
+// ---- Export / Print Helpers ----
+function handleDownloadPdf() {
+  window.print();
+}
+
+function handleDownloadDocx() {
+  try {
+    const title = getDocxTitle();
+    const html = buildDocxHtml(title);
+    const blob = createDocxFromHtml(html, { orientation: 'landscape', title });
+    const filename = `${title || 'InspectionReport'}.docx`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename.replace(/[^a-z0-9._-]/gi, '_');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('DOCX export failed', err);
+    alert('DOCX export failed: ' + (err && err.message ? err.message : 'unknown'));
+  }
+}
+
+function getDocxTitle() {
+  const area = state.area || 'Inspection Report';
+  const date = state.date ? state.date.replace(/[^0-9-]/g, '') : '';
+  return date ? `${area}-${date}` : area;
+}
+
+function buildDocxHtml(title) {
+  const safeTitle = escapeHtml(title || 'Inspection Report');
+  const headerRows = [
+    { label: 'Inspected Area', value: state.area || '' },
+    { label: 'Visited with', value: state.visited || '' },
+    { label: 'Date', value: formatDateForDisplay(state.date) || '' },
+    { label: 'Shift', value: state.shift ? `Shift- ${state.shift}` : '' },
+  ];
+
+  const entryRows = state.entries.map((entry, index) => {
+    const picture = entry.imageData || entry.picture || '';
+    const caption = entry.caption ? `<div class="picture-caption">${escapeHtml(entry.caption)}</div>` : '';
+    const pictureHtml = picture
+      ? `<div class="picture-wrapper"><img src="${escapeHtml(picture)}" alt="Row ${index + 1} picture" /></div>${caption}`
+      : `<div class="picture-wrapper no-image">No image</div>${caption}`;
+
+    return `
+      <tr>
+        <td class="sno-cell"><span class="sno-index">${index + 1}.</span></td>
+        <td class="picture-cell">${pictureHtml}</td>
+        <td>${formatMultiline(entry.location)}</td>
+        <td class="observation-cell">${formatMultiline(entry.observation)}</td>
+        <td class="suggested-cell">${formatMultiline(entry.suggested)}</td>
+        <td>${formatMultiline(entry.inform || '')}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const headerCellsHtml = headerRows.map((row) => `
+    <td>
+      <div class="label">${escapeHtml(row.label)}</div>
+      <div class="value">${escapeHtml(row.value)}</div>
+    </td>
+  `).join('');
+
+  const tableHtml = entryRows || `
+    <tr>
+      <td class="empty" colspan="6">No observations added.</td>
+    </tr>
+  `;
+
+  const styles = `
+    <style>
+      body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; padding: 24px; color: #111827; background: #ffffff; }
+      .report-header-table { width: 100%; border-collapse: collapse; border: 1px solid #2c5aa0; }
+      .report-header-table td { background: #4a7bc8; color: #ffffff; padding: 12px 16px; border-right: 1px solid rgba(255,255,255,0.35); vertical-align: top; }
+      .report-header-table td:last-child { border-right: none; }
+      .report-header-table .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 4px; }
+      .report-header-table .value { font-size: 13px; font-weight: 500; }
+      table.report-table { width: 100%; border-collapse: collapse; margin-top: 16px; table-layout: fixed; font-size: 12px; }
+      table.report-table thead th { background: #4a7bc8; color: #ffffff; font-weight: 600; letter-spacing: 0.04em; padding: 10px 8px; border: 1px solid #2c5aa0; }
+      table.report-table td { border: 1px solid #2c5aa0; padding: 10px 8px; vertical-align: top; }
+      table.report-table td.observation-cell { background: #ffebee; color: #b71c1c; }
+      table.report-table td.suggested-cell { background: #e8f5e8; color: #1b5e20; }
+      table.report-table td.empty { text-align: center; font-style: italic; color: #6b7280; padding: 30px 12px; }
+      .picture-wrapper { width: 100%; min-height: 220px; border: 1px solid #b5bfd3; border-radius: 8px; background: #0f1c38; display: flex; align-items: center; justify-content: center; overflow: hidden; color: #f3f4f6; }
+      .picture-wrapper img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .picture-wrapper.no-image { font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; background: #111827; color: #e5e7eb; }
+      .picture-caption { font-size: 11px; color: #4b5563; margin-top: 6px; text-align: center; }
+      .sno-cell { font-weight: 700; text-align: center; }
+      .sno-index { font-weight: 700; display: inline-block; }
+    </style>
+  `;
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>${safeTitle}</title>
+    ${styles}
+  </head>
+  <body>
+    <table class="report-header-table">
+      <tbody>
+        <tr>
+          ${headerCellsHtml}
+        </tr>
+      </tbody>
+    </table>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>S.NO</th>
+          <th>PICTURE</th>
+          <th>LOCATION</th>
+          <th>OBSERVATION</th>
+          <th>SUGGESTED ACTION</th>
+          <th>INFORM TO</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tableHtml}
+      </tbody>
+    </table>
+  </body>
+</html>`;
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeXml(str) {
+  return escapeHtml(str);
+}
+
+function formatMultiline(value) {
+  return escapeHtml(value || '').replace(/\r?\n/g, '<br />');
+}
+
+function createDocxFromHtml(html, options = {}) {
+  const encoder = new TextEncoder();
+  const orientation = options.orientation === 'landscape' ? 'landscape' : 'portrait';
+  const title = options.title || 'Inspection Report';
+  const now = new Date();
+
+  const entries = [
+    { path: '[Content_Types].xml', data: encoder.encode(buildContentTypes()) },
+    { path: '_rels/.rels', data: encoder.encode(buildRootRels()) },
+    { path: 'docProps/core.xml', data: encoder.encode(buildCoreXml(title, now)) },
+    { path: 'docProps/app.xml', data: encoder.encode(buildAppXml(title)) },
+    { path: 'word/_rels/document.xml.rels', data: encoder.encode(buildDocumentRels()) },
+    { path: 'word/document.xml', data: encoder.encode(buildDocumentXml(orientation)) },
+    { path: 'word/styles.xml', data: encoder.encode(buildStylesXml()) },
+    { path: DOCX_HTML_CHUNK_PATH, data: encoder.encode(html) },
+  ];
+
+  const zipBytes = createDocxZip(entries, now);
+  return new Blob([zipBytes], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  });
+}
+
+function buildContentTypes() {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+  <Override PartName="/word/chunk.xhtml" ContentType="application/xhtml+xml"/>
+  <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
+  <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
+</Types>`;
+}
+
+function buildRootRels() {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>
+  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>
+</Relationships>`;
+}
+
+function buildDocumentRels() {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/afChunk" Target="chunk.xhtml"/>
+</Relationships>`;
+}
+
+function buildDocumentXml(orientation) {
+  const isLandscape = orientation === 'landscape';
+  const pgWidth = isLandscape ? 16838 : 11906;
+  const pgHeight = isLandscape ? 11906 : 16838;
+  const orientAttr = isLandscape ? ' w:orient="landscape"' : '';
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <w:body>
+    <w:altChunk r:id="rId2"/>
+    <w:sectPr>
+      <w:pgSz w:w="${pgWidth}" w:h="${pgHeight}"${orientAttr}/>
+      <w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="720" w:footer="720" w:gutter="0"/>
+      <w:cols w:space="720"/>
+    </w:sectPr>
+  </w:body>
+</w:document>`;
+}
+
+function buildStylesXml() {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:style w:type="paragraph" w:default="1" w:styleId="Normal">
+    <w:name w:val="Normal"/>
+    <w:qFormat/>
+    <w:pPr>
+      <w:spacing w:after="160"/>
+    </w:pPr>
+    <w:rPr>
+      <w:rFonts w:ascii="Segoe UI" w:hAnsi="Segoe UI"/>
+      <w:sz w:val="24"/>
+      <w:szCs w:val="24"/>
+    </w:rPr>
+  </w:style>
+</w:styles>`;
+}
+
+function buildCoreXml(title, date) {
+  const escapedTitle = escapeXml(title);
+  const created = date.toISOString();
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <dc:title>${escapedTitle}</dc:title>
+  <dc:subject>Inspection Report</dc:subject>
+  <dc:creator>Inspection Report Builder</dc:creator>
+  <cp:lastModifiedBy>Inspection Report Builder</cp:lastModifiedBy>
+  <dcterms:created xsi:type="dcterms:W3CDTF">${created}</dcterms:created>
+  <dcterms:modified xsi:type="dcterms:W3CDTF">${created}</dcterms:modified>
+</cp:coreProperties>`;
+}
+
+function buildAppXml(title) {
+  const escapedTitle = escapeXml(title);
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">
+  <Application>Inspection Report Builder</Application>
+  <DocSecurity>0</DocSecurity>
+  <ScaleCrop>false</ScaleCrop>
+  <HeadingPairs>
+    <vt:vector size="2" baseType="variant">
+      <vt:variant><vt:lpstr>Title</vt:lpstr></vt:variant>
+      <vt:variant><vt:i4>1</vt:i4></vt:variant>
+    </vt:vector>
+  </HeadingPairs>
+  <TitlesOfParts>
+    <vt:vector size="1" baseType="lpstr">
+      <vt:lpstr>${escapedTitle}</vt:lpstr>
+    </vt:vector>
+  </TitlesOfParts>
+</Properties>`;
+}
+
+const CRC32_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i += 1) {
+    let c = i;
+    for (let j = 0; j < 8; j += 1) {
+      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    table[i] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(buf) {
+  let crc = 0 ^ -1;
+  for (let i = 0; i < buf.length; i += 1) {
+    crc = (crc >>> 8) ^ CRC32_TABLE[(crc ^ buf[i]) & 0xff];
+  }
+  return (crc ^ -1) >>> 0;
+}
+
+function createDocxZip(entries, date) {
+  const encoder = new TextEncoder();
+  const fileChunks = [];
+  const centralChunks = [];
+  let offset = 0;
+
+  const { dosDate, dosTime } = getDosDateTime(date);
+
+  entries.forEach((entry) => {
+    const nameBytes = encoder.encode(entry.path);
+    const data = entry.data;
+    const crc = crc32(data);
+    const compressedSize = data.length;
+    const uncompressedSize = data.length;
+
+    const localHeader = new Uint8Array(30 + nameBytes.length);
+    const localView = new DataView(localHeader.buffer);
+    localView.setUint32(0, 0x04034b50, true);
+    localView.setUint16(4, 20, true);
+    localView.setUint16(6, 0, true);
+    localView.setUint16(8, 0, true);
+    localView.setUint16(10, dosTime, true);
+    localView.setUint16(12, dosDate, true);
+    localView.setUint32(14, crc, true);
+    localView.setUint32(18, compressedSize, true);
+    localView.setUint32(22, uncompressedSize, true);
+    localView.setUint16(26, nameBytes.length, true);
+    localView.setUint16(28, 0, true);
+    localHeader.set(nameBytes, 30);
+
+    fileChunks.push(localHeader, data);
+
+    const centralHeader = new Uint8Array(46 + nameBytes.length);
+    const centralView = new DataView(centralHeader.buffer);
+    centralView.setUint32(0, 0x02014b50, true);
+    centralView.setUint16(4, 0x031E, true);
+    centralView.setUint16(6, 20, true);
+    centralView.setUint16(8, 0, true);
+    centralView.setUint16(10, 0, true);
+    centralView.setUint16(12, dosTime, true);
+    centralView.setUint16(14, dosDate, true);
+    centralView.setUint32(16, crc, true);
+    centralView.setUint32(20, compressedSize, true);
+    centralView.setUint32(24, uncompressedSize, true);
+    centralView.setUint16(28, nameBytes.length, true);
+    centralView.setUint16(30, 0, true);
+    centralView.setUint16(32, 0, true);
+    centralView.setUint16(34, 0, true);
+    centralView.setUint16(36, 0, true);
+    centralView.setUint32(38, 0, true);
+    centralView.setUint32(42, offset, true);
+    centralHeader.set(nameBytes, 46);
+
+    centralChunks.push(centralHeader);
+
+    offset += localHeader.length + data.length;
+  });
+
+  const centralSize = centralChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const endRecord = new Uint8Array(22);
+  const endView = new DataView(endRecord.buffer);
+  endView.setUint32(0, 0x06054b50, true);
+  endView.setUint16(4, 0, true);
+  endView.setUint16(6, 0, true);
+  endView.setUint16(8, entries.length, true);
+  endView.setUint16(10, entries.length, true);
+  endView.setUint32(12, centralSize, true);
+  endView.setUint32(16, offset, true);
+  endView.setUint16(20, 0, true);
+
+  const allChunks = [...fileChunks, ...centralChunks, endRecord];
+  return concatUint8Arrays(allChunks);
+}
+
+function getDosDateTime(date) {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const seconds = Math.floor(date.getSeconds() / 2);
+
+  const dosDate = ((year - 1980) << 9) | (month << 5) | day;
+  const dosTime = (hours << 11) | (minutes << 5) | seconds;
+
+  return { dosDate, dosTime };
+}
+
+function concatUint8Arrays(chunks) {
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  chunks.forEach((chunk) => {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  });
+  return result;
 }

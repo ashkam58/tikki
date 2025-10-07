@@ -190,7 +190,32 @@
       <div class="preview-toolbar">
         <button type="button" id="downloadBtn" class="primary">Download PDF</button>
         <button type="button" id="downloadDocxBtn" class="secondary">Download DOCX</button>
+        <button type="button" id="fillTestDataBtn" class="secondary">Fill Test Data</button>
+        <label class="images-per-page-selector">
+          Images per page:
+          <select id="imagesPerPageSelect">
+            <option value="1">1 image</option>
+            <option value="2">2 images</option>
+            <option value="3" selected>3 images</option>
+            <option value="4">4 images</option>
+            <option value="5">5 images</option>
+            <option value="6">6 images</option>
+          </select>
+        </label>
         <button type="button" id="resetReportBtn" class="ghost">Reset Report</button>
+        <label class="theme-picker">
+          Theme:
+          <select id="themeSelect" aria-label="Select report theme">
+            <option value="default">Default (Blue)</option>
+            <option value="modern">Modern (Teal)</option>
+            <option value="minimal">Minimal (Clean)</option>
+            <option value="compact">Compact (Dense)</option>
+            <option value="corporate">Corporate (Navy / Grey)</option>
+            <option value="slate">Slate (Charcoal)</option>
+            <option value="green">Corporate Green</option>
+            <option value="mono">Monochrome</option>
+          </select>
+        </label>
       </div>
       <div id="report" class="report" role="region" aria-live="polite">
 
@@ -233,8 +258,6 @@
     <p>Tip: Use the Download PDF button to open the browser print dialog and choose "Save as PDF".</p>
   </footer>
 
-  <!-- html-docx-js for DOCX export (ensure this loads before app.js) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.4.1/html-docx.min.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
