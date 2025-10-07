@@ -69,7 +69,9 @@ function init() {
   refs.clearRowBtn.addEventListener("click", handleClearEntryForm);
   refs.downloadBtn.addEventListener("click", handleDownloadPdf);
   refs.resetReportBtn.addEventListener("click", handleResetReport);
-  refs.fillTestDataBtn.addEventListener("click", handleFillTestData);
+  if (refs.fillTestDataBtn) {
+    refs.fillTestDataBtn.addEventListener("click", handleFillTestData);
+  }
   // DOCX button (may not exist in older HTML until added)
   refs.downloadDocxBtn = document.getElementById("downloadDocxBtn");
   if (refs.downloadDocxBtn) {
@@ -1346,13 +1348,14 @@ function createDocxFromHtml(html, options = {}) {
 }
 
 function buildContentTypes() {
+  const chunkPartName = `/${DOCX_HTML_CHUNK_PATH}`;
   return `<?xml version="1.0" encoding="UTF-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
   <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
-  <Override PartName="/word/chunk.xhtml" ContentType="application/xhtml+xml"/>
+  <Override PartName="${chunkPartName}" ContentType="application/xhtml+xml"/>
   <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
   <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
 </Types>`;
@@ -1368,10 +1371,13 @@ function buildRootRels() {
 }
 
 function buildDocumentRels() {
+  const chunkTarget = DOCX_HTML_CHUNK_PATH.includes('/')
+    ? DOCX_HTML_CHUNK_PATH.slice(DOCX_HTML_CHUNK_PATH.lastIndexOf('/') + 1)
+    : DOCX_HTML_CHUNK_PATH;
   return `<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
-  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/afChunk" Target="chunk.xhtml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/afChunk" Target="${chunkTarget}"/>
 </Relationships>`;
 }
 
@@ -1501,7 +1507,7 @@ function createDocxZip(entries, date) {
     const centralHeader = new Uint8Array(46 + nameBytes.length);
     const centralView = new DataView(centralHeader.buffer);
     centralView.setUint32(0, 0x02014b50, true);
-    centralView.setUint16(4, 0x031E, true);
+    centralView.setUint16(4, 0x0314, true);
     centralView.setUint16(6, 20, true);
     centralView.setUint16(8, 0, true);
     centralView.setUint16(10, 0, true);

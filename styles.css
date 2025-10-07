@@ -1135,7 +1135,56 @@ button:disabled {
   margin: 0.5cm;
 }
 
-/* Dynamic Images Per Page Density Classes */
+/* Dynamic Images Per Page Density Classes - Screen Preview */
+.report.density-1 .picture-wrapper {
+  max-height: 200px;
+  min-height: 150px;
+}
+.report.density-1 .picture-wrapper img {
+  max-height: 200px;
+}
+
+.report.density-2 .picture-wrapper {
+  max-height: 150px;
+  min-height: 110px;
+}
+.report.density-2 .picture-wrapper img {
+  max-height: 150px;
+}
+
+.report.density-3 .picture-wrapper {
+  max-height: 120px;
+  min-height: 80px;
+}
+.report.density-3 .picture-wrapper img {
+  max-height: 120px;
+}
+
+.report.density-4 .picture-wrapper {
+  max-height: 90px;
+  min-height: 60px;
+}
+.report.density-4 .picture-wrapper img {
+  max-height: 90px;
+}
+
+.report.density-5 .picture-wrapper {
+  max-height: 70px;
+  min-height: 50px;
+}
+.report.density-5 .picture-wrapper img {
+  max-height: 70px;
+}
+
+.report.density-6 .picture-wrapper {
+  max-height: 50px;
+  min-height: 35px;
+}
+.report.density-6 .picture-wrapper img {
+  max-height: 50px;
+}
+
+/* Dynamic Images Per Page Density Classes - Print */
 @media print {
   .report.density-1 .picture-wrapper {
     max-height: 160px !important;
